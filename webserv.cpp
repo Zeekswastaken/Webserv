@@ -2,7 +2,7 @@
 
 void server::ft_socket()
 {
-    
+
     this->socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->socket_fd == -1)
     {
@@ -10,44 +10,6 @@ void server::ft_socket()
         exit (1);
     }
     std::cout << "Socket created successfully" << std::endl;
-}
-
-std::string server::content_type(std::string content)
-{
-    int ind = content.find_last_of(".");
-    if (ind != -1)
-    {
-        std::string type = content.substr(ind, content.length() - ind);
-        if (type == ".css")
-            return ("text/css");
-        if (type == ".csv")
-            return ("text/csv");
-        if (type == ".gif")
-            return ("text/gif");
-        if (type == "htm")
-            return ("text/htm");
-        if (type == ".html")
-            return ("html");
-        if (type == ".ico")
-            return ("text/ico");
-        if (type == ".jpeg")
-            return ("text/jpeg");
-        if (type == ".jpg")
-            return ("text/jpg");
-        if (type == ".js")
-            return ("text/js");
-        if (type == ".json")
-            return ("text/json");
-        if (type == ".png")
-            return ("text/png");
-        if (type == ".pdf")
-            return ("text/pdf");
-        if (type == ".svg")
-            return ("text/svg+xml");
-        if (type == ".txt")
-            return ("text/plain");
-    }
-        return ("application/octet-stream");
 }
 
 void server::bind()
@@ -89,9 +51,11 @@ void server::accept()
     int client_addrlen = sizeof(this->client_addr);
     int boolprint = 0;
     int max_sock = this->socket_fd;
+    fd_set in;
+    FD_SET(socket_fd,&in);
     while (1)
     {
-        fd_set read_r;
+        fd_set read_r = in;
         read_r = master;
         if (select(max_sock + 1, &read_r, 0, 0, 0) < 0)
         {
@@ -102,14 +66,23 @@ void server::accept()
         {
             if (FD_ISSET(i, &read_r))
             {
+                if (i == this->socket_fd)
+                {
+                    int newsockfd = ::accept(this->socket_fd, (struct sockaddr *)&host_addr, (socklen_t *)&host_addrlen);
+                       if (newsockfd < 0)
+                        {
+                            perror("Webserver (accept)");
+                            continue;
+                        }
+                        FD_SET(newsockfd,&in);
+
+                        //addih f read and write
+                } 
                 std::cout << i <<": Is this mike on?" << std::endl; 
             }
-        }
-        int newsockfd = ::accept(this->socket_fd, (struct sockaddr *)&host_addr, (socklen_t *)&host_addrlen);
-        if (newsockfd < 0)
-        {
-            perror("Webserver (accept)");
-            continue;
+            else{
+                //   requet
+            }
         }
         std::cout << "Connection accepted" << std::endl;
         //READ FROM THE SOCKET
